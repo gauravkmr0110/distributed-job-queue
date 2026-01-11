@@ -2,18 +2,21 @@ package com.gaurav.jobqueue.worker;
 
 import com.gaurav.jobqueue.model.Job;
 import com.gaurav.jobqueue.model.JobStatus;
+import com.gaurav.jobqueue.service.JobExecutionService;
 
 import java.util.concurrent.BlockingQueue;
 
 public class Worker implements Runnable{
     private final BlockingQueue<Job> queue;
     private final String workerName;
+    private final JobExecutionService jobExecutionService;
 
     private static final int MAX_RETRIES = 3;
 
-    public Worker(BlockingQueue<Job>queue, String name){
+    public Worker(BlockingQueue<Job>queue, String name, JobExecutionService service){
         this.queue = queue;
         this.workerName = name;
+        this.jobExecutionService = service;
     }
 
     @Override
@@ -34,22 +37,22 @@ public class Worker implements Runnable{
     private void execute(Job job){
         try{
             // job logic
-            job.setStatus(JobStatus.RUNNING);
-            System.out.println(workerName + " processing job "+ job.getId() + "| attempt " + (job.getRetryCount()+1));
+            jobExecutionService.markRunning(job);
+            System.out.println(workerName + " processing job "+ job.getId() + " | attempt " + (job.getRetryCount()+1));
             // simulate failure
-            if(Math.random() < 0.4){
+            if(Math.random() < 0.9){
                 throw new RuntimeException("Simulation failure");
             }
             Thread.sleep(1000); // real work simulation
-            job.setStatus(JobStatus.SUCCESS);
+            jobExecutionService.markSuccess(job);
             System.out.println(workerName + " completed job "+ job.getId() + " | attempt " + (job.getRetryCount()+1));
 
         }
         catch(Exception e){
-            job.incrementRetry();
 
             if(job.getRetryCount() < MAX_RETRIES){
-                job.setStatus(JobStatus.PENDING);
+                job.incrementRetry();
+                jobExecutionService.markPending(job);
                 System.out.println(workerName + " retrying job "+ job.getId() + " | attempt " + (job.getRetryCount()+1));
 
                 try{
@@ -60,7 +63,7 @@ public class Worker implements Runnable{
                 }
             }
             else{
-                job.setStatus(JobStatus.FAILED);
+                jobExecutionService.markFailed(job);
                 System.out.println(workerName + " failed job "+ job.getId());
             }
         }

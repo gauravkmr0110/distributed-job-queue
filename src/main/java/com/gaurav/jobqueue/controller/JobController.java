@@ -16,7 +16,7 @@ public class JobController {
 
     @PostMapping
     public String submitJob(@RequestBody Job job) throws InterruptedException{
-        jobService.submit(job);
+        jobService.enqueueJob(job);
         return "Job submitted with id " + job.getId();
     }
 

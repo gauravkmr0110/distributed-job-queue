@@ -1,15 +1,24 @@
 package com.gaurav.jobqueue.model;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "jobs")
 public class Job {
-    private final int id;
-    private final String type;
-    private final String payload;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
 
+    private  String type;
+    private  String payload;
+
+    @Enumerated(EnumType.STRING)
     private JobStatus status;
+
     private int retryCount;
 
-    public Job(int id, String type, String payload){
-        this.id = id;
+    public Job(){};
+
+    public Job(String type, String payload){
         this.type = type;
         this.payload = payload;
         this.status = JobStatus.PENDING;
