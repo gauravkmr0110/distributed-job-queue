@@ -1,0 +1,1 @@
+A Redis-backed distributed job processing system built using Java and Spring Boot, implementing the producer–consumer pattern to handle asynchronous background tasks with support for concurrent workers, retries, and failure-safe processing.
